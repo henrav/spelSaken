@@ -1,0 +1,3 @@
+/Users/henrikravnborg/CLionProjects/spel?/cmake-build-debug/CMakeFiles/spel_.dir
+/Users/henrikravnborg/CLionProjects/spel?/cmake-build-debug/CMakeFiles/edit_cache.dir
+/Users/henrikravnborg/CLionProjects/spel?/cmake-build-debug/CMakeFiles/rebuild_cache.dir
