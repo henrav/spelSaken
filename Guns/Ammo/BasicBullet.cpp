@@ -23,13 +23,7 @@ void BasicBullet::update() {
 }
 
 BasicBullet::~BasicBullet() {
-    // Destructor implementation
-    // You might want to clean up resources here if needed
-    // For example, if you dynamically allocated memory, delete it here
-    // But in this case, we are not dynamically allocating anything in BasicBullet
-    // So we can leave it empty or add a comment
 
-    // Destructor is empty because we are not dynamically allocating any resources
 
 }
 

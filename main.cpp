@@ -5,7 +5,7 @@
 
 int main() {
     Game game;
-    game.run(); // Start the main loop
+    game.run();
     sf::RenderWindow window(sf::VideoMode(800, 600), "SFML Window");
 
     return 0;
