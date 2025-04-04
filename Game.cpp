@@ -133,29 +133,21 @@ void Game::checkBulletEnemyCollision() {
 void Game::checkWallCollision() {
     for (auto &wall: walls) {
         if (checkWallDistance(wall)) {
-            sf::FloatRect playerBounds = player.getRectangle().getGlobalBounds();  // Assuming a rectangular bound, even if the name suggests a circle
+            sf::FloatRect playerBounds = player.getRectangle().getGlobalBounds();
             sf::FloatRect wallBounds = wall.getGlobalBounds();
 
-            // Check if the player's bounding box intersects the wall's bounding box
             sf::FloatRect intersection;
             if (playerBounds.intersects(wallBounds, intersection)) {
-                // Determine whether to resolve on the x-axis or y-axis
                 if (intersection.width < intersection.height) {
-                    // Resolve collision on the x-axis
                     if (playerBounds.left < wallBounds.left) {
-                        // Collision from the left side: push the player to the left
                         player.setPos(wallBounds.left - playerBounds.width, player.getPos().y);
                     } else {
-                        // Collision from the right side: push the player to the right
                         player.setPos(wallBounds.left + wallBounds.width , player.getPos().y);
                     }
                 } else {
-                    // Resolve collision on the y-axis
                     if (playerBounds.top < wallBounds.top) {
-                        // Collision from the top: push the player upward
                         player.setPos(player.getPos().x, wallBounds.top - playerBounds.height);
                     } else {
-                        // Collision from the bottom: push the player downward
                         player.setPos(player.getPos().x, wallBounds.top + wallBounds.height );
                     }
                 }

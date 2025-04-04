@@ -7,10 +7,13 @@
 Map::Map() {
     std::srand(static_cast<unsigned>(std::time(nullptr)));
 
-    // Initialize the 2D array to true (all walls)
     walls.resize(minHeight, std::vector<bool>(minWidth, true));
     map(20000);
 }
+
+/*
+ * literally använder inte 90% av denna fil längre
+ */
 
 void Map::map(int steg) {
 
@@ -24,12 +27,10 @@ void Map::map(int steg) {
     int nrOfCells = minWidth * minHeight;
     float coverage = 1 / nrOfCells;
 
-    walls[row][col] = false; // carve out the starting cell
+    walls[row][col] = false;
 
     for (int i = 0; i < 100; i++) {
-        // Randomly choose a direction: 0 = right, 1 = left, 2 = down, 3 = up
         int direction = std::rand() % 4;
-        // Random corridor length between 1 and 5
         int length = 1 + std::rand() % 20;
         if (direction == 0 && lastDirection == 1) {
             int random = std::rand() % 2;
@@ -64,24 +65,23 @@ void Map::map(int steg) {
 
 
             switch (direction) {
-                case 0: // right
+                case 0: // höger
 
                     digTunnel2(14, 4, 0);
                     lastDirection = 0;
                     break;
-                case 1: // left
+                case 1: // vänster
                     digTunnel2(14, 4, 1);
                     lastDirection = 1;
                     break;
-                case 2: // down
+                case 2: // ner
                     digTunnel2(14, 4, 2);
                     lastDirection = 2;
                     break;
-                case 3: // up
+                case 3: //upp
                     digTunnel2(14, 4, 3);
                     lastDirection = 3;
 
-                    // Carve out the cell (set to false)
 
             }
 
@@ -723,7 +723,7 @@ bool Map::isWall(int x, int y) { // returnerar true om en wall
 
 bool Map::isEdge(int x, int y) {
     if (x -1  < 0 || x + 1 >= minHeight || y -1  < 0 || y +1 >= minWidth) {
-        return false; // Out of bounds
+        return false;
     }
     return walls[x][y];
 }
