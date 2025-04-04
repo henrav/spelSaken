@@ -7,9 +7,9 @@
 
 
 #include "Window.h"
-#include <SFML/Graphics.hpp>
 #include "Player.h"
 #include "map/Map.h"
+#include "Enemies/BasicEnemy.h"
 class Map;
 
 class Game {
@@ -27,14 +27,28 @@ private:
     void render();
     sf::RenderWindow window;
     sf::View view;
-    sf::RectangleShape stone;
     float startX = 0;
     float startY = 0;
     Map mappen;
     std::vector<sf::RectangleShape> walls;
+    std::vector<Enemy*> enemies;
 
 
     bool checkAdjecentWalls(int x, int y);
+
+    bool checkWallDistance(sf::RectangleShape &wall);
+
+    void checkWallCollision();
+
+    void handleCollisions();
+
+    void checkBulletWallCollision();
+
+    static bool checkWallDistance(sf::RectangleShape &wall, sf::RectangleShape shape);
+
+    void checkBulletEnemyCollision();
+
+    void cleanUp();
 };
 
 

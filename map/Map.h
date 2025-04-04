@@ -19,9 +19,9 @@ public:
     int steg2;
     int lastDirection = 0;
 
-private:
-    int minHeight = 100;
-    int minWidth = 100;
+
+    int minHeight = 400;
+    int minWidth = 400;
     std::vector<std::vector<bool>> walls;
     std::stack<std::pair<int, int>> stack;
 
@@ -61,6 +61,11 @@ private:
 
 
     void digTunnel(int length, int width, int direction);
+    void digTunnel2(int length, int width, int direction);
+
+
+    int getCol(){return col;};
+    int getRow(){return row;};
 };
 
 

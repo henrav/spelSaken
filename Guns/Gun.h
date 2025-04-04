@@ -15,10 +15,11 @@ class Bullet;
 
 class Gun {
 public:
+
     virtual ~Gun() = default;
     virtual void fire(sf::Vector2f position) = 0;
     virtual void update() = 0;
-    virtual std::vector<Bullet*> getBullets() = 0;
+    virtual std::vector<Bullet*>& getBullets() = 0;
     virtual void fire(sf::Vector2f position, sf::Vector2f velocity) = 0;
 
     float getAmmo() const { return ammo; }
@@ -31,10 +32,14 @@ public:
     void setSpeed(sf::Vector2f inSpeed){ speed = inSpeed;};
     void setSpeed(float x, float y){speed.x = x; speed.y = y;}
 
+    float getExtraDamage() const { return extraDamage; }
+    void setExtraDamage(float extraDamage) { this->extraDamage = extraDamage; }
+
 
 protected:
     float ammo = 10;
     float fireRate = 1.0f;
+    float extraDamage = 0;
     sf::Vector2f speed = {1,1};
     sf::Clock fireRateClock;
     std::vector<Bullet*> bullets;

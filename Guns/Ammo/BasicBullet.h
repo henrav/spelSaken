@@ -11,7 +11,7 @@ class BasicBullet : public Bullet{
 public:
     BasicBullet();
 
-    sf::CircleShape getBulletShape() override;
+    sf::RectangleShape getBulletShape() override;
 
     void update() override;
 
@@ -20,8 +20,10 @@ public:
     void setPosition(sf::Vector2f pos) override;
     void setPosition(float x, float y) override;
     sf::Vector2f getPosition() override;
+    void killBullet() override;
 
 
+    void addVelocity(float d, float d1);
 
 
 };

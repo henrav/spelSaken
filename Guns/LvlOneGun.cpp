@@ -3,12 +3,8 @@
 //
 
 #include "LvlOneGun.h"
+#include "iostream"
 
-LvlOneGun::LvlOneGun() {
-    speed = {1,1};
-    ammo = 1000;
-    fireRate = 0.2;
-}
 
 
 
@@ -18,7 +14,7 @@ void LvlOneGun::fire(sf::Vector2f position) {
             auto *bullet = new BasicBullet();
             bullet->setPosition(position);
             bullet->setVelocity(1, 1);
-            bullets.push_back(bullet);
+            bullets.emplace_back(bullet);
             ammo--;
             fireRateClock.restart();
         }
@@ -31,7 +27,7 @@ void LvlOneGun::update() {
     }
 }
 
-std::vector<Bullet*> LvlOneGun::getBullets() {
+std::vector<Bullet*>& LvlOneGun::getBullets() {
     return bullets;
 }
 
@@ -45,7 +41,9 @@ void LvlOneGun::fire(sf::Vector2f position, sf::Vector2f velocity) {
         if (ammo > 0) {
             auto *bullet = new BasicBullet();
             bullet->setPosition(position);
-            bullet->setVelocity(velocity);
+            bullet->setVelocity(velocity.x, velocity.y);
+            bullet->addDMG(extraDamage);
+            std::cout << "Firing bullet with velocity: " << velocity.x << ", " << velocity.y << std::endl;
             bullets.push_back(bullet);
             ammo--;
             fireRateClock.restart();

@@ -6,15 +6,16 @@
 #define SPEL__PLAYER_H
 
 
+#include <SFML/Graphics.hpp>
 
 
 #include "Guns/LvlOneGun.h"
 
 class Player {
 private:
-    sf::CircleShape playerShape;
+    sf::RectangleShape playerShape;
     sf::Vector2f velocity;
-    float speed = 5;
+    float speed = 7;
     Gun* gun;
 
 
@@ -23,19 +24,22 @@ public:
     void update();
     void move(float x, float y);
     void setPos(float x, float y);
-    sf::CircleShape &getCircle();
+    sf::RectangleShape &getRectangle();
     void moveLeft();
     void moveRight();
     void moveUp();
     void moveDown();
     void fire();
     void setGun(Gun* gun);
-    Gun * getGun();
+    Gun* getGun();
     sf::Vector2f getPos();
 
 
+    void setVelocity(int i, int i1);
 
+    int lastMove;
 
+    void resetVelocity();
 };
 
 

@@ -26,7 +26,7 @@ void Map::map(int steg) {
 
     walls[row][col] = false; // carve out the starting cell
 
-    for (int i = 0; i < 70; i++) {
+    for (int i = 0; i < 100; i++) {
         // Randomly choose a direction: 0 = right, 1 = left, 2 = down, 3 = up
         int direction = std::rand() % 4;
         // Random corridor length between 1 and 5
@@ -66,19 +66,19 @@ void Map::map(int steg) {
             switch (direction) {
                 case 0: // right
 
-                    digTunnel(14, 5, 0);
+                    digTunnel2(14, 4, 0);
                     lastDirection = 0;
                     break;
                 case 1: // left
-                    digTunnel(14, 5, 1);
+                    digTunnel2(14, 4, 1);
                     lastDirection = 1;
                     break;
                 case 2: // down
-                    digTunnel(14, 5, 2);
+                    digTunnel2(14, 4, 2);
                     lastDirection = 2;
                     break;
                 case 3: // up
-                    digTunnel(14, 5, 3);
+                    digTunnel2(14, 4, 3);
                     lastDirection = 3;
 
                     // Carve out the cell (set to false)
@@ -251,6 +251,82 @@ void Map::carveBlock(int centerRow, int centerCol, int halfHeight, int halfWidth
 void Map::setFalse(int row, int col) {
     walls[row][col] = false;
     stack.emplace(row, col);
+}
+
+void Map::digTunnel2(int length, int width, int direction){
+    switch (direction) {
+        case 0:
+            if ((row + length) < minWidth - width + 20) {
+                for (int i = 0; i < length; i++) {
+                    setFalse(row + 1, col);
+                    row++;
+                    for (int j = 0; j < width; j++) {
+                        setFalse(row, col + j);
+                        if (col + j + 1 < minHeight) {
+                            setFalse(row, col + j + 1);
+                        }
+                        if (col - j >= 0) {
+                            setFalse(row, col - j);
+                        }
+                    }
+                }
+            }
+            break;
+        case 1:
+            if ((row - length) > 20 + width) {
+                for (int i = 0; i < length; i++) {
+                    setFalse(row - 1, col);
+                    row--;
+                    for (int j = 0; j < width; j++) {
+                        setFalse(row, col + j);
+                        if (col + j + 1 < minHeight) {
+                            setFalse(row, col + j + 1);
+                        }
+                        if (col - j >= 0) {
+                            setFalse(row, col - j);
+                        }
+                    }
+                }
+            }
+            break;
+        case 2:
+            if ((col + length) < minHeight - width - 20) {
+                for (int i = 0; i < length; i++) {
+                    setFalse(row, col + 1);
+                    col++;
+                    for (int j = 0; j < width; j++) {
+                        setFalse(row + j, col);
+                        if (row + j + 1 < minWidth) {
+                            setFalse(row + j + 1, col);
+                        }
+                        if (row - j >= 0) {
+                            setFalse(row - j, col);
+                        }
+                    }
+                }
+            }
+            break;
+        case 3:
+            if ((col - length +5) > width) {
+                for (int i = 0; i < length; i++) {
+                    setFalse(row, col - 1);
+                    col--;
+                    for (int j = 0; j < width; j++) {
+                        setFalse(row + j, col);
+                        if (row + j + 1 < minWidth) {
+                            setFalse(row + j + 1, col);
+                        }
+                        if (row - j >= 0) {
+                            setFalse(row - j, col);
+                        }
+                    }
+                }
+            }
+            break;
+
+
+    }
+
 }
 
 void Map::digTunnel(int length, int width, int direction){
