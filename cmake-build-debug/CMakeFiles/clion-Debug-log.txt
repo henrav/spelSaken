@@ -1,4 +1,13 @@
-/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/bin/cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_MAKE_PROGRAM=/Applications/CLion.app/Contents/bin/ninja/mac/aarch64/ninja -G Ninja -S /Users/henrikravnborg/CLionProjects/spel? -B /Users/henrikravnborg/CLionProjects/spel?/cmake-build-debug
+/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/bin/cmake -DCMAKE_BUILD_TYPE=Debug -G "CodeBlocks - Unix Makefiles" -S /Users/henrikravnborg/CLionProjects/spel? -B /Users/henrikravnborg/CLionProjects/spel?/cmake-build-debug
+CMake Deprecation Warning:
+  Support for "Extra Generators" like
+
+    CodeBlocks
+
+  is deprecated and will be removed from a future version of CMake.  IDEs may
+  use the cmake-file-api(7) to view CMake-generated project build trees.
+
+
 -- Found SFML 2.6.2 in /opt/homebrew/opt/sfml@2/lib/cmake/SFML
 -- Configuring done (0.2s)
 -- Generating done (0.0s)

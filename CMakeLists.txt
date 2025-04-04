@@ -7,6 +7,7 @@ set(CMAKE_CXX_STANDARD 23)
 # Tell CMake explicitly where to find SFML
 set(SFML_DIR "/opt/homebrew/opt/sfml@2/lib/cmake/SFML")
 
+# Find SFML package
 add_executable(spel_ main.cpp
         Window.cpp
         Window.h
@@ -23,7 +24,11 @@ add_executable(spel_ main.cpp
         Guns/Ammo/Bullet.cpp
         Guns/Ammo/Bullet.h
         map/Map.cpp
-        map/Map.h)
+        map/Map.h
+        Enemies/Enemy.cpp
+        Enemies/Enemy.h
+        Enemies/BasicEnemy.cpp
+        Enemies/BasicEnemy.h)
 
 find_package(SFML 2.6 COMPONENTS system window graphics network audio REQUIRED)
 
