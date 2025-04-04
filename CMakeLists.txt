@@ -21,7 +21,9 @@ add_executable(spel_ main.cpp
         Guns/Gun.cpp
         Guns/Gun.h
         Guns/Ammo/Bullet.cpp
-        Guns/Ammo/Bullet.h)
+        Guns/Ammo/Bullet.h
+        map/Map.cpp
+        map/Map.h)
 
 find_package(SFML 2.6 COMPONENTS system window graphics network audio REQUIRED)
 

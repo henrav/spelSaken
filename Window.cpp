@@ -35,3 +35,4 @@ void Window::draw(const sf::Drawable &drawable) {
 sf::RenderWindow& Window::getSFMLWindow() {
     return m_window;
 }
+

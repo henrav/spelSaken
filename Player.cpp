@@ -63,3 +63,7 @@ void Player::setGun(Gun *newGun) {
     }
     gun = newGun;
 }
+
+sf::Vector2f Player::getPos() {
+    return playerShape.getPosition();
+}

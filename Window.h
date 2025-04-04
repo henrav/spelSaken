@@ -25,8 +25,17 @@ public:
 
     sf::RenderWindow& getSFMLWindow();
 
+    void setView(const sf::View &view) {
+
+        m_window.setView(view);
+    }
+
+
+
+
 private:
     sf::RenderWindow m_window;
+
 };
 
 

@@ -31,6 +31,7 @@ public:
     void fire();
     void setGun(Gun* gun);
     Gun * getGun();
+    sf::Vector2f getPos();
 
 
 
