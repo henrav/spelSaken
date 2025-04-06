@@ -28,7 +28,15 @@ add_executable(spel_ main.cpp
         Enemies/Enemy.cpp
         Enemies/Enemy.h
         Enemies/BasicEnemy.cpp
-        Enemies/BasicEnemy.h)
+        Enemies/BasicEnemy.h
+        map/Blocks/Ground.cpp
+        map/Blocks/Ground.h
+        map/Blocks/BasicGround.cpp
+        map/Blocks/BasicGround.h
+        misc/TextureManager.cpp
+        misc/TextureManager.h
+        map/Blocks/Walls/Walls.cpp
+        map/Blocks/Walls/Walls.h)
 
 find_package(SFML 2.6 COMPONENTS system window graphics network audio REQUIRED)
 

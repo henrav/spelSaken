@@ -36,7 +36,7 @@ void BasicBullet::setPosition(float x, float y) {
 }
 
 sf::Vector2f BasicBullet::getPosition() {
-    return sf::Vector2f();
+    return bulletShape.getPosition();
 }
 
 void BasicBullet::killBullet() {

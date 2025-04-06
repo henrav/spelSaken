@@ -6,7 +6,14 @@
 #include "iostream"
 
 
+LvlOneGun::LvlOneGun() {
+    speed = {1, 1};
+    ammo = 100000;
+    fireRate = 0.001;
+    extraDamage = 90;
 
+
+}
 
 void LvlOneGun::fire(sf::Vector2f position) {
     if (fireRateClock.getElapsedTime().asSeconds() > fireRate) {
@@ -51,3 +58,5 @@ void LvlOneGun::fire(sf::Vector2f position, sf::Vector2f velocity) {
     }
 
 }
+
+

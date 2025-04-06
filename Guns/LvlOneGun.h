@@ -16,12 +16,7 @@
 class LvlOneGun: public Gun {
 
 public:
-    LvlOneGun(){
-        speed = {1, 1};
-        ammo = 1000;
-        fireRate = 1;
-        extraDamage = 90;
-    }
+    LvlOneGun();
     void update() override;
     void fire(sf::Vector2f position) override;
     void fire(sf::Vector2f position, sf::Vector2f velocity) override;

@@ -4,12 +4,20 @@
 
 #include "Game.h"
 #include "thread"
+#include "map/Blocks/BasicGround.h"
+#include "map/Blocks/Walls/Walls.h"
+#include <mutex>
+#include <iostream>
+using namespace std;
+
 
 
 Game::Game()
 
 {
-    window.create(sf::VideoMode(1920, 1080), "SFML Window");
+    sf::ContextSettings settings;
+
+    window.create(sf::VideoMode(1920, 1080), "SFML Window",sf::Style::Default, settings);
     view = sf::View(sf::FloatRect(0, 0, 1920.f, 1080.f));
     window.setView(view);
     tickRate.restart();
@@ -23,23 +31,27 @@ void Game::run() {
     //sf::Thread thread(&Game::render, this);
     generateWalls();
     player.setPos( mappen.getRow() * 100,  mappen.getCol() * 100 );
+    window.setVerticalSyncEnabled(true);
     view.zoom(2.f);
     window.setView(view);
+
     auto *enemy = new BasicEnemy();
     enemy->setPosition(player.getPos().x, player.getPos().y);
     enemies.push_back(enemy);
+
     std::thread drawThread(&Game::render, this);
     while (window.isOpen()) {
-        if (tickRate.getElapsedTime().asMilliseconds() > 1000 / 60) {
+        if (tickRate.getElapsedTime().asMilliseconds() > 1000/60) {
             keyProcessing();
             handleCollisions();
-            update();
             tickRate.restart();
         }
+
+        this_thread::sleep_for(chrono::milliseconds(1));
     }
     drawThread.join();
-
 }
+
 
 void Game::keyProcessing() {
     sf::Event event;
@@ -71,26 +83,31 @@ void Game::keyProcessing() {
 
 
 void Game::update() {
-    for ( auto &bullet: player.getGun()->getBullets()){
-        bullet->update();
+    auto &bullets = player.getGun()->getBullets();
+    for (int i = bullets.size() - 1; i >= 0; i--) {
+        bullets[i]->update();
     }
-    float playerx = player.getPos().x;
-    float playery = player.getPos().y;
-    for (auto &enemy : enemies){
-        std::cout << "Enemy position: " << enemy->getPosition().x << ", " << enemy->getPosition().y << std::endl;
-    }
-    view.setCenter(player.getPos());
 
-    window.setView(view);
+
 
 }
 
-void Game::render() {
 
+
+
+
+void Game::render() {
     window.setActive(true);
+
     while (window.isOpen())
     {
+
+        fps++;
         window.clear();
+
+        drawGrounds();
+        drawWalls();
+
         window.draw(player.getRectangle());
         for (auto &bullet : player.getGun()->getBullets()){
             window.draw(bullet->getBulletShape());
@@ -98,10 +115,27 @@ void Game::render() {
         for (auto &enemy : enemies){
             window.draw(enemy->getEnemyShape());
         }
-        drawWalls();
+        if (clock2.getElapsedTime().asMilliseconds() > 1000) {
+            cout << "fps: " << fps << endl;
+            fps = 0;
+            clock2.restart();
+        }
+        view.setCenter(player.getPos());
+        window.setView(view);
         window.display();
+        if (window.hasFocus()) {
+            window.setActive(true);
+        } else {
+            window.setActive(false);
+        }
+
+
     }
+
+
 }
+
+
 
 void Game::handleCollisions() {
     checkWallCollision();
@@ -111,8 +145,11 @@ void Game::handleCollisions() {
 
 void Game::checkBulletEnemyCollision() {
     auto bullets = player.getGun()->getBullets();
-
+       if (bullets.size() > 1){
+           cout << "bullets size: " << bullets.size() << endl;
+       }
     for (int i = bullets.size() - 1; i >= 0; i--) {
+        bullets[i]->update();
         for (int j = 0; j < enemies.size(); j++) {
             if (bullets[i]->getBulletShape().getGlobalBounds().intersects(enemies[j]->getEnemyShape().getGlobalBounds())) {
                 enemies[j]->takeDamage(bullets[i]->getDMG());
@@ -131,10 +168,9 @@ void Game::checkBulletEnemyCollision() {
 }
 
 void Game::checkWallCollision() {
-    for (auto &wall: walls) {
-        if (checkWallDistance(wall)) {
+    for (auto &wall: wallsGrounds) {
             sf::FloatRect playerBounds = player.getRectangle().getGlobalBounds();
-            sf::FloatRect wallBounds = wall.getGlobalBounds();
+            sf::FloatRect wallBounds = wall->getSprite().getGlobalBounds();
 
             sf::FloatRect intersection;
             if (playerBounds.intersects(wallBounds, intersection)) {
@@ -152,28 +188,40 @@ void Game::checkWallCollision() {
                     }
                 }
             }
-        }
     }
 }
 
 void Game::checkBulletWallCollision(){
     auto bullets = player.getGun()->getBullets();
-    for (int i = player.getGun()->getBullets().size() - 1; i >= 0; i--) {
-        for (auto &wall: walls) {
-            if (checkWallDistance(wall, player.getGun()->getBullets()[i]->getBulletShape())) {
-                sf::FloatRect bulletBounds = player.getGun()->getBullets()[i]->getBulletShape().getGlobalBounds();
-                sf::FloatRect wallBounds = wall.getGlobalBounds();
+    for (int i = bullets.size() - 1; i >= 0; i--) {
+        for (auto &wall: wallsGrounds) {
+                if (checkDistanceToWall(wall, bullets[i]->getPosition() )){
+                    sf::FloatRect bulletBounds = bullets[i]->getBulletShape().getGlobalBounds();
+                    sf::FloatRect wallBounds = wall->getShape().getGlobalBounds();
 
-                sf::FloatRect intersection;
-                if (bulletBounds.intersects(wallBounds, intersection)) {
-                    player.getGun()->getBullets().erase(player.getGun()->getBullets().begin() + i);
-                    break;
+                    sf::FloatRect intersection;
+                    if (bulletBounds.intersects(wallBounds, intersection)) {
+                        player.getGun()->getBullets().erase(player.getGun()->getBullets().begin() + i);
+                        break;
                 }
+
             }
         }
     }
 
 }
+
+bool Game::checkDistanceToWall(Ground *wall, sf::Vector2f pos){
+    float posx = pos.x;
+    float posy = pos.y;
+    float wallx = wall->getShape().getPosition().x;
+    float wally = wall->getShape().getPosition().y;
+    if (wallx < posx - 10000 || posx > wallx + 10000 || wally < posy - 10000 || wally > posy + 10000){
+        return false;
+    }
+    return true;
+}
+
 
 bool Game::checkWallDistance(sf::RectangleShape &wall, sf::RectangleShape shape) {
     float wallpos = wall.getPosition().x;
@@ -193,41 +241,212 @@ bool Game::checkWallDistance(sf::RectangleShape &wall) {
         float playerpos = player.getPos().x;
         float playerposy = player.getPos().y;
 
-        if (wallpos < playerpos - 1920 || wallpos > playerpos + 1920 || wallposy < playerposy - 1080 || wallposy > playerposy + 1080){
+        if (wallpos < playerpos - 5000 || wallpos > playerpos + 5000 || wallposy < playerposy - 4000 || wallposy > playerposy + 4000){
             return false;
         }
         return true;
 }
 
 void Game::drawWalls() {
-    for (auto &wall : walls) {
+
+
+     for (auto &wall : wallsGrounds) {
 
         float xpos = player.getPos().x;
         float ypos = player.getPos().y;
-        float wallpos =wall.getPosition().x;
-        float wallposy = wall.getPosition().y;
+        float wallpos =wall->getShape().getPosition().x;
+        float wallposy = wall->getShape().getPosition().y;
         if (wallpos < xpos - 2100 || wallpos > xpos + 2100 || wallposy < ypos - 1300 || wallposy > ypos + 1300){
             continue;
         }
-        window.draw(wall);
+        window.draw(wall->getSprite());
 
+    }
+
+    sf::View currentView = window.getView();
+    sf::Vector2f viewSize = currentView.getSize();
+    sf::Vector2f viewCenter = currentView.getCenter();
+    sf::FloatRect viewRect(viewCenter - viewSize / 2.f, viewSize);
+
+    for (auto &ground : wallsGrounds) {
+        if (ground->getSprite().getGlobalBounds().intersects(viewRect)) {
+            window.draw(ground->getSprite());
+        }
+    }
+
+}
+
+void Game::drawGrounds() {
+
+    /*
+     *  for (auto &ground : grounds) {
+        float xpos = player.getPos().x;
+        float ypos = player.getPos().y;
+        float groundpos =ground->getSprite().getPosition().x;
+        float groundposy = ground->getSprite().getPosition().y;
+        if (groundpos < xpos - 2100 || groundpos > xpos + 2100 || groundposy < ypos - 1300 || groundposy > ypos + 1300){
+            continue;
+        }
+        window.draw(ground->getSprite());
+    }
+     */
+    sf::View currentView = window.getView();
+    sf::Vector2f viewSize = currentView.getSize();
+    sf::Vector2f viewCenter = currentView.getCenter();
+    sf::FloatRect viewRect(viewCenter - viewSize / 2.f, viewSize);
+
+    for (auto &ground : grounds) {
+        if (ground->getSprite().getGlobalBounds().intersects(viewRect)) {
+            window.draw(ground->getSprite());
+        }
     }
 }
 
 void Game::generateWalls() {
+    int columns = mappen.getWidth();
+    int rows = mappen.getHeight();
+    int cellsize = 100;
 
+    struct nyWall{
+        int startx;
+        int starty;
+        int direction;
+        int length;
+    };
+    std::vector<nyWall> nyaVäggar;
+    std::vector<std::vector<bool>> redanKombinerad(columns, std::vector<bool>(rows, false));
+
+    for (int row = 0; row < rows; row++){
+        for (int col = 0; col < columns; col++){
+            if (mappen.isWall(col, row)){
+                if (!checkAdjecentWalls(col, row)){
+                }else{}
+            }else{
+                auto *Ground = new BasicGround();
+                Ground->getSprite().setPosition(col * 100, row * 100);
+                grounds.push_back(Ground);
+            }
+        }
+    }
+
+    for (int row = 0; row < rows; row++) {
+        for (int col = 0; col < columns; col++) {
+            if (mappen.isWall(row, col) && !redanKombinerad[row][col] && !checkAdjecentWalls(row, col)) {
+                int startCol = col;
+                int endCol = col;
+                while (endCol < columns && mappen.isWall(row, endCol) &&
+                       !redanKombinerad[row][endCol] && !checkAdjecentWalls(row, endCol)) {
+                    redanKombinerad[row][endCol] = true;
+                    endCol++;
+                }
+
+                int startRow = row;
+                int endRow = row + 1;
+                while (endRow < rows) {
+                    bool canMergeRow = true;
+                    for (int j = startCol; j < endCol; j++) {
+                        if (!mappen.isWall(endRow, j) || checkAdjecentWalls(endRow, j) || redanKombinerad[endRow][j]) {
+                            canMergeRow = false;
+                            break;
+                        }
+                    }
+                    if (!canMergeRow)
+                        break;
+                    for (int j = startCol; j < endCol; j++) {
+                        redanKombinerad[endRow][j] = true;
+                    }
+                    endRow++;
+                }
+                int height = (endRow - startRow) * cellsize;
+                int width = (endCol - startCol) * cellsize;
+                auto* wallObj = new Walls();
+                wallObj->setPosition(startRow * cellsize,startCol * cellsize  );
+                wallObj->setSize(height, width);
+                wallsGrounds.push_back(wallObj);
+            }
+        }
+    }
+
+
+
+    /*
+
+    for (int row = 0; row < rows; row++) {
+        for (int col = 0; col < columns; col++) {
+            if (mappen.isWall(row, col) && !redanKombinerad[row][col] && !checkAdjecentWalls(row, col)) {
+                int startCol = col;
+                int endCol = col;
+                while (endCol < columns && mappen.isWall(row, endCol) &&
+                       !redanKombinerad[row][endCol] && !checkAdjecentWalls(row, endCol)) {
+                    redanKombinerad[row][endCol] = true;
+                    endCol++;
+                }
+
+                int startRow = row;
+                int endRow = row + 1;
+                while (endRow < rows) {
+                    bool canMergeRow = true;
+                    for (int j = startCol; j < endCol; j++) {
+                        if (!mappen.isWall(endRow, j) || checkAdjecentWalls(endRow, j) || redanKombinerad[endRow][j]) {
+                            canMergeRow = false;
+                            break;
+                        }
+                    }
+                    if (!canMergeRow)
+                        break;
+                    for (int j = startCol; j < endCol; j++) {
+                        redanKombinerad[endRow][j] = true;
+                    }
+                    endRow++;
+                }
+                int height = (endRow - startRow) * cellsize;
+                int width = (endCol - startCol) * cellsize;
+                auto* wallObj = new Walls();
+                wallObj->setPosition(startRow * cellsize,startCol * cellsize  );
+                wallObj->setSize(height, width);
+                wallsGrounds.push_back(wallObj);
+            }
+        }
+    }
+     */
+
+
+
+
+
+
+
+    cout << "Walls generated: " << wallsGrounds.size() << endl;
+
+
+
+
+
+
+
+
+
+
+/*
     for (int row = 0; row < mappen.getHeight(); row++){
         for (int col = 0; col < mappen.getWidth(); col++){
             if (mappen.isWall(row, col)){
                 if (!checkAdjecentWalls(row, col)){
-                    sf::RectangleShape wall;
-                    wall.setSize(sf::Vector2f(100, 100));
-                    wall.setPosition(row * 100, col * 100);
-                    walls.push_back(wall);
+                    auto *Ground = new Walls();
+                    Ground->setPosition(row * 100, col * 100);
+
+                    wallsGrounds.push_back(Ground);
                 }
+            }else{
+                auto *Ground = new BasicGround();
+                Ground->getSprite().setPosition(row * 100, col * 100);
+                grounds.push_back(Ground);
             }
         }
     }
+
+*/
+
 }
 bool Game::checkAdjecentWalls(int row, int col) {
     for (int dr = -1; dr <= 1; ++dr) {

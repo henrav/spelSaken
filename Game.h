@@ -10,6 +10,9 @@
 #include "Player.h"
 #include "map/Map.h"
 #include "Enemies/BasicEnemy.h"
+#include "map/Blocks/Ground.h"
+#include "map/Blocks/Walls/Walls.h"
+
 class Map;
 
 class Game {
@@ -32,6 +35,17 @@ private:
     Map mappen;
     std::vector<sf::RectangleShape> walls;
     std::vector<Enemy*> enemies;
+    std::vector<Ground*> grounds;
+    std::vector<Ground*> wallsGrounds;
+    sf::Clock clock2;
+    float fps = 0;
+    clock_t deltaTime = 0;
+    double  frameRate = 30;
+    double  averageFrameTimeMilliseconds = 33.333;
+
+    double clockToMilliseconds(clock_t clock) {
+        return static_cast<double>(clock) / CLOCKS_PER_SEC * 1000;
+    }
 
 
     bool checkAdjecentWalls(int x, int y);
@@ -49,6 +63,10 @@ private:
     void checkBulletEnemyCollision();
 
     void cleanUp();
+
+    void drawGrounds();
+
+    bool checkDistanceToWall(Ground *wall, sf::Vector2f pos);
 };
 
 

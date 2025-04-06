@@ -15,7 +15,7 @@ class Player {
 private:
     sf::RectangleShape playerShape;
     sf::Vector2f velocity;
-    float speed = 7;
+    float speed = 15;
     Gun* gun;
 
 
