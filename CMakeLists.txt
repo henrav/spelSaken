@@ -36,7 +36,9 @@ add_executable(spel_ main.cpp
         misc/TextureManager.cpp
         misc/TextureManager.h
         map/Blocks/Walls/Walls.cpp
-        map/Blocks/Walls/Walls.h)
+        map/Blocks/Walls/Walls.h
+        Enemies/EnemySpawner.cpp
+        Enemies/EnemySpawner.h)
 
 find_package(SFML 2.6 COMPONENTS system window graphics network audio REQUIRED)
 

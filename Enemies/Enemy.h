@@ -30,6 +30,8 @@ public:
 
     virtual sf::RectangleShape getEnemyShape() = 0;
 
+
+
     void takeDamage(float damage){
         health -= damage;
         if (health <= 0) {

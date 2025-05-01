@@ -5,8 +5,9 @@
 
 int main() {
     Game game;
+    sf::RenderWindow window(sf::VideoMode(1920, 1080), "SFML Window");
+    game.setSFRenderWindow(&window);
     game.run();
-    sf::RenderWindow window(sf::VideoMode(800, 600), "SFML Window");
 
     return 0;
 }

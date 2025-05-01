@@ -9,9 +9,11 @@ Walls::Walls() {
    m_texturePath = "../textures/Walls/basicWall.png";
 
     sf::Texture& sharedTexture = TextureManager::getTexture(m_texturePath);
+    sharedTexture.setRepeated(true);
     m_sprite.setTexture(sharedTexture);
     m_shape.setSize(sf::Vector2f(0, 0));
     m_shape.setPosition(0, 0);
+
 
 }
 
