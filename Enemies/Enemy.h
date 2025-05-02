@@ -67,6 +67,7 @@ public:
     void moveRight(float x) { enemyShape.move(x, 0); velocity.x = x; }
     void moveUp(float y) { enemyShape.move(0, -y); velocity.y = -y; }
     void moveDown(float y) { enemyShape.move(0, y); velocity.y = y; }
+    void move(float x, float y){enemyShape.move(x, y);}
 
 
 

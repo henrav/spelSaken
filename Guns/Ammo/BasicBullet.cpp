@@ -5,7 +5,7 @@
 #include "BasicBullet.h"
 
 BasicBullet::BasicBullet() {
-    bulletShape.setSize(sf::Vector2f(9, 9));
+    bulletShape.setSize(sf::Vector2f(20, 20));
     speed = 9;
     bulletShape.setPosition(0, 0);
     velocity.x = 1;

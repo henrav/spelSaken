@@ -13,7 +13,7 @@
 #include "Enemies/BasicEnemy.h"
 #include "map/Blocks/Ground.h"
 #include "map/Blocks/Walls/Walls.h"
-#include "Enemies/EnemySpawner.h"
+#include "Enemies/EnemyHandler.h"
 class Map;
 
 class Game {
@@ -77,6 +77,8 @@ private:
     void drawGrounds();
 
     bool checkDistanceToWall(Ground *wall, sf::Vector2f pos);
+
+    void updateEnemies();
 
 };
 

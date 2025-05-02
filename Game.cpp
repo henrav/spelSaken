@@ -44,8 +44,9 @@ void Game::run() {
         if (tickRate.getElapsedTime().asMilliseconds() > 1000/60) {
             keyProcessing();
             handleCollisions();
+            updateEnemies();
             tickRate.restart();
-            if (nrOfEnemies < 15){
+            if (nrOfEnemies < 40){
                 generateEnemies();
             }
             if (enemiesGenerated){
@@ -144,11 +145,6 @@ void Game::render() {
         view.setCenter(player.getPos());
         window->setView(view);
         window->display();
-        if (window->hasFocus()) {
-            window->setActive(true);
-        } else {
-            window->setActive(false);
-        }
 
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
 
@@ -172,7 +168,6 @@ void Game::checkBulletEnemyCollision() {
     for (int i = bullets.size() - 1; i >= 0; i--) {
         bullets[i]->update();
         std::lock_guard<std::mutex> lk(enemiesMtx);
-
         for (int j = 0; j < enemies.size(); j++) {
             if (bullets[i]->getBulletShape().getGlobalBounds().intersects(enemies[j]->getEnemyShape().getGlobalBounds())) {
                 enemies[j]->takeDamage(bullets[i]->getDMG());
@@ -485,7 +480,7 @@ bool Game::checkAdjecentWalls(int row, int col) {
 void Game::generateEnemies() {
     vector<Ground*> nylista = grounds;
 
-    vector<pair<int, int>> positioner = EnemySpawner::generateEnemyPos(nylista, player.getPos().x, player.getPos().y);
+    vector<pair<int, int>> positioner = EnemyHandler::generateEnemyPos(nylista, player.getPos().x, player.getPos().y);
     int i = 0;
 
     int rand = random() % static_cast<int>(positioner.size());
@@ -511,6 +506,14 @@ void Game::mergeNewEnemies() {
     tempEnemies.clear();
     enemiesGenerated = false;
     nrOfEnemies = enemies.size();
+}
+
+void Game::updateEnemies() {
+    vector<Ground*> nylista = grounds;
+    EnemyHandler::moveEnemies(enemies,player, nylista);
+
+
+
 }
 
 

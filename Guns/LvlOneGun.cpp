@@ -9,7 +9,7 @@
 LvlOneGun::LvlOneGun() {
     speed = {1, 1};
     ammo = 100000;
-    fireRate = 0.001;
+    fireRate = 0.1;
     extraDamage = 90;
 
 
