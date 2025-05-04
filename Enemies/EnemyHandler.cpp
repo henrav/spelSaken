@@ -7,10 +7,10 @@
 std::vector<std::pair<int, int>> EnemyHandler::generateEnemyPos(std::vector<Ground*>& list, float playerx, float playery) {
     float x = playerx;
     float y = playery;
-    float minxDistance = 5000;
-    float minyDistance = 5000;
-    float maxxDistance = 15000;
-    float maxyDistance = 15000;
+    float minxDistance = 1000;
+    float minyDistance = 1000;
+    float maxxDistance = 1500;
+    float maxyDistance = 1500;
     std::vector<std::pair<int,int>> positions;
     positions.reserve(list.size());
 

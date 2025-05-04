@@ -23,11 +23,11 @@ BasicEnemy::BasicEnemy() {
     velocity.x = 0;
     velocity.y = 0;
     dmg = 10;
-    speed = 2;
+    speed = 0.5;
     health = 100;
     aggroRange = 1500;
     maxChaseDistance = 4000;
-
+    enemyShape.setOrigin(50/2.f, 50/2.f);
 
 
 }

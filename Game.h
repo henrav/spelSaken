@@ -51,6 +51,9 @@ private:
     double  averageFrameTimeMilliseconds = 33.333;
     bool enemiesGenerated;
     std::vector<Enemy*> tempEnemies;
+    int TILE = 100;
+    int ROWS;
+    int COLS;
     double clockToMilliseconds(clock_t clock) {
         return static_cast<double>(clock) / CLOCKS_PER_SEC * 1000;
     }

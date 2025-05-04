@@ -14,7 +14,7 @@ protected:
     sf::RectangleShape enemyShape;
     sf::Vector2f velocity;
     float dmg;
-    int speed;
+    float speed;
     float health;
     int width;
     int height;
@@ -22,7 +22,9 @@ protected:
     bool aggrod = false;
     int aggroRange = 1500;
     int maxChaseDistance = 4000;
-
+    sf::Vector2i moveToPoint = sf::Vector2i (-1, -1);
+    sf::Vector2i lastPosBeforeMoveTo = sf::Vector2i (-1000, -1000);
+    bool NewPath = true;
 public:
 
     virtual void update() = 0;
@@ -81,7 +83,15 @@ public:
     void moveDown(float y) { enemyShape.move(0, y); velocity.y = y; }
     void move(float x, float y){enemyShape.move(x, y);}
 
+    void setMoveTo (int x, int y){moveToPoint.x = x; moveToPoint.y = y;}
+    std::pair<int, int> getMoveToPoint (){return {moveToPoint.x, moveToPoint.y};}
+    void moveTowardsMoveTo();
 
+    void setLastPos(int x, int y){lastPosBeforeMoveTo.x = x; lastPosBeforeMoveTo.y = y;}
+    std::pair<int, int> getLastPosBefore(){return {moveToPoint.x, moveToPoint.y};}
+
+    bool needNewPath(){return NewPath;}
+    void setNewPath(bool value){NewPath = value;}
 
 };
 

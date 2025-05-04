@@ -51,7 +51,7 @@ void Game::run() {
             keyProcessing();
             handleCollisions();
             tickRate.restart();
-            if (nrOfEnemies < 20){
+            if (nrOfEnemies < 1){
                 generateEnemies();
             }
             if (enemiesGenerated){
@@ -318,6 +318,7 @@ void Game::drawGrounds() {
     for (auto &ground : grounds) {
         if (ground->getSprite().getGlobalBounds().intersects(viewRect)) {
             window->draw(ground->getSprite());
+            //window->draw(ground->getShape())
         }
     }
 }
@@ -331,7 +332,8 @@ void Game::generateWalls() {
     int columns = mappen.getHeight();
     int rows = mappen.getWidth();
     int cellsize = 100;
-
+    ROWS = rows;
+    COLS = columns;
     std::vector<std::vector<bool>> redanKombinerad(columns, std::vector<bool>(rows, false));
     groundbool = std::vector<std::vector<bool>>(rows, std::vector<bool>(columns, false));
     for (int row = 0; row < rows; row++){
@@ -517,18 +519,24 @@ void Game::mergeNewEnemies() {
     enemiesGenerated = false;
     nrOfEnemies = enemies.size();
 }
+static const std::array<std::pair<int,int>,8> DIRS8 = {{
+                                                               {+1,0},{-1,0},{0,+1},{0,-1},
+                                                               {+1,+1},{+1,-1},{-1,+1},{-1,-1}
+                                                       }};
 
 void Game::updateEnemies() {
+
 
     std::lock_guard<std::mutex> lk(enemiesMtx);
 
     sf::Vector2f playerPos = player.getPos();
 
-    for (auto enemy : enemies) {
+    for (auto* enemy : enemies) {
+
         sf::Vector2f enemyPos = enemy->getPosition();
         if (enemy->getAggrod()){
             const int aggroRange = enemy->getChaseDistance();
-            // Check hardcoded aggro box
+
             if (std::abs(playerPos.x - enemyPos.x) > aggroRange ||
                 std::abs(playerPos.y - enemyPos.y) > aggroRange) {
                 enemy->setAggrod(false);
@@ -536,18 +544,70 @@ void Game::updateEnemies() {
             }
         }else{
             const int aggroRange = enemy->getAggroRange();
-            // Check hardcoded aggro box
             if (std::abs(playerPos.x - enemyPos.x) > aggroRange ||
                 std::abs(playerPos.y - enemyPos.y) > aggroRange) {
                 continue;
             }
         }
         pair<int, int> goal = pair(  static_cast<int>(player.getPos().x / 100), static_cast<int>(player.getPos().y / 100));
+
         pair<int, int> start = pair( static_cast<int>(enemy->getPosition().x / 100) ,  static_cast<int>(enemy->getPosition().y / 100));
-        auto nextMove = tryMoveEnemies(start, goal);
+        enemy->moveTowardsMoveTo();
+        if (!groundbool[start.second][start.first]) {
+            int x = start.first;
+            int y = start.second;
+            if (y > 0 && !groundbool[y-1][x]) {
+                enemy->getEnemyShape().move(0.f, +50.f);
+            }
+            if (y+1 < ROWS && !groundbool[y+1][x]) {
+                enemy->getEnemyShape().move(0.f, -50.f);
+            }
+            if (x > 0 && !groundbool[y][x-1]) {
+                enemy->getEnemyShape().move(+50.f, 0.f);
+            }
+            if (x+1 < COLS && !groundbool[y][x+1]) {
+                enemy->getEnemyShape().move(-50.f, 0.f);
+            }
+
+            /*
+            if (y > 0             && groundbool[y-1][x]) { y = y-1; }
+            else if (x > 0        && groundbool[y  ][x-1]) { x = x-1; }
+            else if (x+1 < COLS   && groundbool[y  ][x+1]) { x = x+1; }
+            else if (y+1 < ROWS   && groundbool[y+1][x]) { y = y+1; }
+            else if (y > 0      && x > 0       && groundbool[y-1][x-1]) { y = y-1; x = x-1; }
+            else if (y > 0      && x+1 < COLS  && groundbool[y-1][x+1]) { y = y-1; x = x+1; }
+            else if (y+1 < ROWS && x > 0       && groundbool[y+1][x-1]) { y = y+1; x = x-1; }
+            else if (y+1 < ROWS && x+1 < COLS  && groundbool[y+1][x+1]) { y = y+1; x = x+1; }
+
+
+
+            enemy->setMoveTo(x, y);
+            enemy->setNewPath(false);
+            enemy->moveTowardsMoveTo();
+             */
+
+            enemy->setNewPath(true);
+            continue;
+        }
+
+        if (enemy->needNewPath()){
+            if (goal == start){
+                continue;
+            }
+            auto nextMove = tryMoveEnemies(start, goal);
+            if (nextMove){
+                enemy->setMoveTo(nextMove->first, nextMove->second);
+            }
+            enemy->setNewPath(false);
+        }
+
+
+
+        /*
         if (nextMove) {
-            float dx = nextMove->first - static_cast<int>(enemy->getPosition().x / 100);
-            float dy = nextMove->second - static_cast<int>(enemy->getPosition().y / 100);
+
+            float dx = (nextMove->first) - start.first;
+            float dy = (nextMove->second) - start.second;
 
             float length = std::sqrt(dx * dx + dy * dy);
             if (length == 0) continue;
@@ -555,6 +615,7 @@ void Game::updateEnemies() {
             float dirY = dy / length;
             enemy->move(dirX * enemy->getSpeed(), dirY * enemy->getSpeed());
         }
+         */
     }
 }
 #include <set>
@@ -570,24 +631,25 @@ struct cell {
     // f = g + h
     double f, g, h;
 };
-static const std::array<std::pair<int,int>,8> DIRS8 = {{
-                                                               {+1,0},{-1,0},{0,+1},{0,-1},
-                                                               {+1,+1},{+1,-1},{-1,+1},{-1,-1}
-                                                       }};
+
 #include <optional>
 
 std::optional<Pair>
 Game::tryMoveEnemies(Pair start /*{row,col}*/, Pair goal /*{row,col}*/)
 {
+    for (auto *g : grounds) {
+        g->getSprite().setColor(sf::Color::White);
+    }
     const int ROW = mappen.getHeight();
     const int COL = mappen.getWidth();
+
 
     auto inside   =[&](int r,int c){ return r>=0&&r<ROW&&c>=0&&c<COL; };
     auto walkable =[&](int r,int c){ return inside(r,c) && groundbool[c][r]; };
     auto heuristic=[&](int r,int c){
         int dx = goal.second - c;
         int dy = goal.first  - r;
-        return std::sqrt(double(dx*dx + dy*dy));
+        return double(std::abs(dx) + std::abs(dy));
     };
 
     if (!walkable(start.first,start.second) ||
@@ -597,11 +659,13 @@ Game::tryMoveEnemies(Pair start /*{row,col}*/, Pair goal /*{row,col}*/)
     std::vector<std::vector<bool>> closed(ROW, std::vector<bool>(COL,false));
     std::vector<std::vector<cell>> cd    (ROW, std::vector<cell>(COL));
 
-    for(int r=0;r<ROW;++r)
+    for(int r=0;r<ROW;++r){
         for(int c=0;c<COL;++c){
             cd[r][c].f = cd[r][c].g = cd[r][c].h = std::numeric_limits<double>::infinity();
             cd[r][c].parent_i = cd[r][c].parent_j = -1;
         }
+    }
+
 
     int sr=start.first , sc=start.second;
     cd[sr][sc].g = cd[sr][sc].h = cd[sr][sc].f = 0.0;
@@ -623,7 +687,9 @@ Game::tryMoveEnemies(Pair start /*{row,col}*/, Pair goal /*{row,col}*/)
             int nr=r+dr, nc=c+dc;
             if (!walkable(nr,nc) || closed[nr][nc]) continue;
 
-            double step = (dr&&dc)?1.41421356237:1.0;
+            double step = (dr && dc) ? 1.41421356237 : 1.0;
+
+            //double step = 1.0;
             double gNew = cd[r][c].g + step;
             double hNew = heuristic(nr,nc);
             double fNew = gNew + hNew;
@@ -648,6 +714,19 @@ Game::tryMoveEnemies(Pair start /*{row,col}*/, Pair goal /*{row,col}*/)
     while (!(cd[tr][tc].parent_i == sr && cd[tr][tc].parent_j == sc)) {
         int pr = cd[tr][tc].parent_i;
         int pc = cd[tr][tc].parent_j;
+        float wx = pc * TILE;
+        float wy = pr * TILE;
+
+        for (auto *g : grounds) {
+            auto &spr = g->getSprite();
+
+            if (spr.getPosition().x == wy &&
+                spr.getPosition().y == wx)
+            {
+                g->getSprite().setColor(sf::Color::Red);
+                break;
+            }
+        }
         tr = pr; tc = pc;
     }
 
