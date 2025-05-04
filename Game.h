@@ -41,6 +41,7 @@ private:
     std::vector<Ground*> grounds;
     std::vector<Ground*> wallsGrounds;
     std::mutex enemiesMtx;
+    std::vector<std::vector<bool>> groundbool;
     sf::Clock clock2;
     std::vector<int> deadEnemies;
     int nrOfEnemies = 0;
@@ -79,6 +80,8 @@ private:
     bool checkDistanceToWall(Ground *wall, sf::Vector2f pos);
 
     void updateEnemies();
+
+    std::optional<std::pair<int, int>> tryMoveEnemies(std::pair<int, int> start, std::pair<int, int> goal);
 
 };
 

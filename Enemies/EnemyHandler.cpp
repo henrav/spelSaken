@@ -7,10 +7,10 @@
 std::vector<std::pair<int, int>> EnemyHandler::generateEnemyPos(std::vector<Ground*>& list, float playerx, float playery) {
     float x = playerx;
     float y = playery;
-    float minxDistance = 2000;
-    float minyDistance = 2500;
-    float maxxDistance = 10000;
-    float maxyDistance = 10000;
+    float minxDistance = 5000;
+    float minyDistance = 5000;
+    float maxxDistance = 15000;
+    float maxyDistance = 15000;
     std::vector<std::pair<int,int>> positions;
     positions.reserve(list.size());
 
@@ -45,10 +45,11 @@ std::vector<std::pair<int, int>> EnemyHandler::generateEnemyPos(std::vector<Grou
 }
 
 
-void EnemyHandler::moveEnemies(std::vector<Enemy*> &enemies, Player player, std::vector<Ground*>& ground ) {
+void EnemyHandler::moveEnemies(std::vector<Enemy*> &enemies, Player player, std::vector<Ground*>& ground,  std::vector<Ground*>& walls) {
     auto playerPos = player.getPos();
     for (auto &enemy : enemies) {
         auto pos = enemy->getPosition();
+        auto shape = enemy->getEnemyShape();
         float speed = static_cast<float>(enemy->getSpeed());
 
         float dx = playerPos.x - pos.x;
@@ -66,4 +67,30 @@ void EnemyHandler::moveEnemies(std::vector<Enemy*> &enemies, Player player, std:
         enemy->move(dirX * speed, dirY * speed);
     }
 }
+
+auto thingy1  (int col, int row){
+
+};
+
+auto heuristic (Pos current, Pos goal){
+    int dx = goal.x - current.x;
+    int dy = goal.y - current.y;
+    return std::sqrt(dx * dx + dy * dy);
+};
+
+auto isDestination(Pos current, Pos goal){
+    if (current.x == goal.x && current.y == goal.y){
+        return true;
+    }else{
+        return false;
+    }
+};
+
+void EnemyHandler::testMove(std::vector<Cell> cells, std::pair<int, int> playerPos, std::pair<int, int> startpos) {
+
+
+
+
+}
+
 

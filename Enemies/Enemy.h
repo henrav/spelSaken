@@ -19,6 +19,9 @@ protected:
     int width;
     int height;
     bool dead = false;
+    bool aggrod = false;
+    int aggroRange = 1500;
+    int maxChaseDistance = 4000;
 
 public:
 
@@ -32,6 +35,8 @@ public:
 
 
 
+
+
     void takeDamage(float damage){
         health -= damage;
         if (health <= 0) {
@@ -39,6 +44,13 @@ public:
             dead = true;
         }
     }
+
+    void setAggrod (bool value){aggrod = value;}
+    bool getAggrod (){return aggrod;}
+    int getAggroRange(){return aggroRange;}
+
+    void setChaseDistance(int value){maxChaseDistance = value;}
+    int getChaseDistance(){return maxChaseDistance;}
 
     void setVelocity(sf::Vector2f pos) { velocity = pos; }
     void setVelocity(float x, float y) { velocity.x = x; velocity.y = y; }

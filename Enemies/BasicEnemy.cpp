@@ -23,8 +23,12 @@ BasicEnemy::BasicEnemy() {
     velocity.x = 0;
     velocity.y = 0;
     dmg = 10;
-    speed = 1;
+    speed = 2;
     health = 100;
+    aggroRange = 1500;
+    maxChaseDistance = 4000;
+
+
 
 }
 
@@ -47,6 +51,8 @@ void BasicEnemy::killEnemy() {
     height = 0;
 
 }
+
+
 
 BasicEnemy::~BasicEnemy() {
 

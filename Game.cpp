@@ -8,6 +8,7 @@
 #include "map/Blocks/Walls/Walls.h"
 #include <mutex>
 #include <iostream>
+#include <unordered_map>
 using namespace std;
 
 
@@ -34,28 +35,29 @@ void Game::run() {
     window->setView(view);
 
     auto *enemy = new BasicEnemy();
-    enemy->setPosition(player.getPos().x, player.getPos().y);
 
-        enemies.push_back(enemy);
 
     window->setActive(false);
     std::thread drawThread(&Game::render, this);
+    bool running = true;
+    std::thread enemyThread([&] {
+        while (running) {
+            updateEnemies();
+            this_thread::sleep_for(chrono::milliseconds(1));
+        }
+    });
     while (window->isOpen()) {
         if (tickRate.getElapsedTime().asMilliseconds() > 1000/60) {
             keyProcessing();
             handleCollisions();
-            updateEnemies();
             tickRate.restart();
-            if (nrOfEnemies < 40){
+            if (nrOfEnemies < 20){
                 generateEnemies();
             }
             if (enemiesGenerated){
                 mergeNewEnemies();
             }
-
-
         }
-
         this_thread::sleep_for(chrono::milliseconds(1));
     }
     drawThread.join();
@@ -320,13 +322,18 @@ void Game::drawGrounds() {
     }
 }
 
+
+std::vector<Cell> celllist;
+
+
+
 void Game::generateWalls() {
-    int columns = mappen.getWidth();
-    int rows = mappen.getHeight();
+    int columns = mappen.getHeight();
+    int rows = mappen.getWidth();
     int cellsize = 100;
 
     std::vector<std::vector<bool>> redanKombinerad(columns, std::vector<bool>(rows, false));
-
+    groundbool = std::vector<std::vector<bool>>(rows, std::vector<bool>(columns, false));
     for (int row = 0; row < rows; row++){
         for (int col = 0; col < columns; col++){
             if (mappen.isWall(col, row)){
@@ -336,10 +343,12 @@ void Game::generateWalls() {
                 auto *Ground = new BasicGround();
                 Ground->getSprite().setPosition(col * 100, row * 100);
                 grounds.push_back(Ground);
+                groundbool[row][col] = true;
             }
         }
     }
 
+    cout << "cellist: " << celllist.size() << endl;
     for (int row = 0; row < rows; row++) {
         for (int col = 0; col < columns; col++) {
             if (mappen.isWall(row, col) && !redanKombinerad[row][col] && !checkAdjecentWalls(row, col)) {
@@ -478,6 +487,7 @@ bool Game::checkAdjecentWalls(int row, int col) {
 }
 
 void Game::generateEnemies() {
+
     vector<Ground*> nylista = grounds;
 
     vector<pair<int, int>> positioner = EnemyHandler::generateEnemyPos(nylista, player.getPos().x, player.getPos().y);
@@ -509,11 +519,139 @@ void Game::mergeNewEnemies() {
 }
 
 void Game::updateEnemies() {
-    vector<Ground*> nylista = grounds;
-    EnemyHandler::moveEnemies(enemies,player, nylista);
+
+    std::lock_guard<std::mutex> lk(enemiesMtx);
+
+    sf::Vector2f playerPos = player.getPos();
+
+    for (auto enemy : enemies) {
+        sf::Vector2f enemyPos = enemy->getPosition();
+        if (enemy->getAggrod()){
+            const int aggroRange = enemy->getChaseDistance();
+            // Check hardcoded aggro box
+            if (std::abs(playerPos.x - enemyPos.x) > aggroRange ||
+                std::abs(playerPos.y - enemyPos.y) > aggroRange) {
+                enemy->setAggrod(false);
+                continue;
+            }
+        }else{
+            const int aggroRange = enemy->getAggroRange();
+            // Check hardcoded aggro box
+            if (std::abs(playerPos.x - enemyPos.x) > aggroRange ||
+                std::abs(playerPos.y - enemyPos.y) > aggroRange) {
+                continue;
+            }
+        }
+        pair<int, int> goal = pair(  static_cast<int>(player.getPos().x / 100), static_cast<int>(player.getPos().y / 100));
+        pair<int, int> start = pair( static_cast<int>(enemy->getPosition().x / 100) ,  static_cast<int>(enemy->getPosition().y / 100));
+        auto nextMove = tryMoveEnemies(start, goal);
+        if (nextMove) {
+            float dx = nextMove->first - static_cast<int>(enemy->getPosition().x / 100);
+            float dy = nextMove->second - static_cast<int>(enemy->getPosition().y / 100);
+
+            float length = std::sqrt(dx * dx + dy * dy);
+            if (length == 0) continue;
+            float dirX = dx / length;
+            float dirY = dy / length;
+            enemy->move(dirX * enemy->getSpeed(), dirY * enemy->getSpeed());
+        }
+    }
+}
+#include <set>
+typedef pair<int, int> Pair;
 
 
+typedef pair<double, pair<int, int> > pPair;
 
+
+struct cell {
+
+    int parent_i, parent_j;
+    // f = g + h
+    double f, g, h;
+};
+static const std::array<std::pair<int,int>,8> DIRS8 = {{
+                                                               {+1,0},{-1,0},{0,+1},{0,-1},
+                                                               {+1,+1},{+1,-1},{-1,+1},{-1,-1}
+                                                       }};
+#include <optional>
+
+std::optional<Pair>
+Game::tryMoveEnemies(Pair start /*{row,col}*/, Pair goal /*{row,col}*/)
+{
+    const int ROW = mappen.getHeight();
+    const int COL = mappen.getWidth();
+
+    auto inside   =[&](int r,int c){ return r>=0&&r<ROW&&c>=0&&c<COL; };
+    auto walkable =[&](int r,int c){ return inside(r,c) && groundbool[c][r]; };
+    auto heuristic=[&](int r,int c){
+        int dx = goal.second - c;
+        int dy = goal.first  - r;
+        return std::sqrt(double(dx*dx + dy*dy));
+    };
+
+    if (!walkable(start.first,start.second) ||
+        !walkable(goal.first ,goal.second )) return std::nullopt;
+
+
+    std::vector<std::vector<bool>> closed(ROW, std::vector<bool>(COL,false));
+    std::vector<std::vector<cell>> cd    (ROW, std::vector<cell>(COL));
+
+    for(int r=0;r<ROW;++r)
+        for(int c=0;c<COL;++c){
+            cd[r][c].f = cd[r][c].g = cd[r][c].h = std::numeric_limits<double>::infinity();
+            cd[r][c].parent_i = cd[r][c].parent_j = -1;
+        }
+
+    int sr=start.first , sc=start.second;
+    cd[sr][sc].g = cd[sr][sc].h = cd[sr][sc].f = 0.0;
+    cd[sr][sc].parent_i = sr;
+    cd[sr][sc].parent_j = sc;
+
+    std::set<pPair> open;
+    open.insert({0.0, {sr,sc}});
+
+    while(!open.empty()){
+        auto [fCurr,pos] = *open.begin();
+        open.erase(open.begin());
+        int r = pos.first, c = pos.second;
+        closed[r][c] = true;
+
+        if (r==goal.first && c==goal.second) break;
+
+        for(auto [dr,dc] : DIRS8){
+            int nr=r+dr, nc=c+dc;
+            if (!walkable(nr,nc) || closed[nr][nc]) continue;
+
+            double step = (dr&&dc)?1.41421356237:1.0;
+            double gNew = cd[r][c].g + step;
+            double hNew = heuristic(nr,nc);
+            double fNew = gNew + hNew;
+
+            if (cd[nr][nc].f > fNew) {
+
+                auto it = open.find({cd[nr][nc].f,{nr,nc}});
+                if(it!=open.end()) open.erase(it);
+
+                open.insert({fNew,{nr,nc}});
+                cd[nr][nc] = {r,c,fNew,gNew,hNew};
+            }
+        }
+    }
+
+
+    if (cd[goal.first][goal.second].parent_i == -1)
+        return std::nullopt;
+
+
+    int tr = goal.first , tc = goal.second;
+    while (!(cd[tr][tc].parent_i == sr && cd[tr][tc].parent_j == sc)) {
+        int pr = cd[tr][tc].parent_i;
+        int pc = cd[tr][tc].parent_j;
+        tr = pr; tc = pc;
+    }
+
+    return Pair{tr,tc};
 }
 
 
