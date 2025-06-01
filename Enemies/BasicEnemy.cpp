@@ -25,9 +25,9 @@ BasicEnemy::BasicEnemy() {
     dmg = 10;
     speed = 0.5;
     health = 100;
-    aggroRange = 1500;
-    maxChaseDistance = 4000;
-    enemyShape.setOrigin(50/2.f, 50/2.f);
+    aggroRange = 4000;
+    maxChaseDistance = 10000;
+
 
 
 }

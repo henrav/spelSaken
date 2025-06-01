@@ -51,12 +51,13 @@ void Game::run() {
             keyProcessing();
             handleCollisions();
             tickRate.restart();
-            if (nrOfEnemies < 1){
+            if (nrOfEnemies < 15){
                 generateEnemies();
             }
             if (enemiesGenerated){
                 mergeNewEnemies();
             }
+            this_thread::sleep_for(chrono::milliseconds(14));
         }
         this_thread::sleep_for(chrono::milliseconds(1));
     }
@@ -557,16 +558,16 @@ void Game::updateEnemies() {
             int x = start.first;
             int y = start.second;
             if (y > 0 && !groundbool[y-1][x]) {
-                enemy->getEnemyShape().move(0.f, +50.f);
+                enemy->getEnemyShape().move(0.f, +100.f);
             }
             if (y+1 < ROWS && !groundbool[y+1][x]) {
-                enemy->getEnemyShape().move(0.f, -50.f);
+                enemy->getEnemyShape().move(0.f, -100.f);
             }
             if (x > 0 && !groundbool[y][x-1]) {
-                enemy->getEnemyShape().move(+50.f, 0.f);
+                enemy->getEnemyShape().move(+100.f, 0.f);
             }
             if (x+1 < COLS && !groundbool[y][x+1]) {
-                enemy->getEnemyShape().move(-50.f, 0.f);
+                enemy->getEnemyShape().move(-100.f, 0.f);
             }
 
             /*
@@ -637,9 +638,7 @@ struct cell {
 std::optional<Pair>
 Game::tryMoveEnemies(Pair start /*{row,col}*/, Pair goal /*{row,col}*/)
 {
-    for (auto *g : grounds) {
-        g->getSprite().setColor(sf::Color::White);
-    }
+
     const int ROW = mappen.getHeight();
     const int COL = mappen.getWidth();
 
@@ -716,7 +715,7 @@ Game::tryMoveEnemies(Pair start /*{row,col}*/, Pair goal /*{row,col}*/)
         int pc = cd[tr][tc].parent_j;
         float wx = pc * TILE;
         float wy = pr * TILE;
-
+/*
         for (auto *g : grounds) {
             auto &spr = g->getSprite();
 
@@ -727,6 +726,7 @@ Game::tryMoveEnemies(Pair start /*{row,col}*/, Pair goal /*{row,col}*/)
                 break;
             }
         }
+        */
         tr = pr; tc = pc;
     }
 
