@@ -1,7 +1,7 @@
 //
 // Created by Henrik Ravnborg on 2025-04-01.
 //
-
+//
 #ifndef SPEL__GAME_H
 #define SPEL__GAME_H
 
